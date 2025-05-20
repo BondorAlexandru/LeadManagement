@@ -5,6 +5,7 @@ A Next.js application for managing immigration case assessment leads. This syste
 ## Table of Contents
 
 - [Overview](#overview)
+- [Live Demo](#live-demo)
 - [System Architecture](#system-architecture)
 - [Key Features](#key-features)
 - [Technical Stack](#technical-stack)
@@ -22,6 +23,19 @@ A Next.js application for managing immigration case assessment leads. This syste
 ## Overview
 
 The Lead Management System is designed for immigration law firms or consultants to collect potential client information through a public-facing form. The system allows admins to manage these leads through a secure dashboard, where they can view submission details and update lead statuses.
+
+## Live Demo
+
+The application is deployed on Vercel and can be accessed at the following links:
+
+- **Public Form**: [https://lead-management-8jtl.vercel.app/](https://lead-management-8jtl.vercel.app/)
+- **Admin Dashboard**: [https://lead-management-8jtl.vercel.app/admin](https://lead-management-8jtl.vercel.app/admin)
+
+### Login Credentials
+
+To access the admin dashboard, use the following credentials:
+- **Email**: admin@tryalma.ai
+- **Password**: password
 
 ## System Architecture
 
