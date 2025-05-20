@@ -6,89 +6,87 @@ import {
   materialCells,
 } from '@jsonforms/material-renderers';
 import { useState, useEffect } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
+import { styled } from '@mui/material/styles';
 import { JsonSchema, UISchemaElement } from '@jsonforms/core';
 import { CircularProgress } from '@mui/material';
 
 // Custom styles to match the design in the image
-const useStyles = makeStyles({
-  container: {
+const StyledFormContainer = styled('div')({
+  padding: '0',
+  '& .MuiFormControl-root': {
+    margin: '0.75rem 0',
+  },
+  '& .MuiInputBase-root': {
+    backgroundColor: 'white',
+    borderRadius: '0.375rem',
+  },
+  '& .MuiOutlinedInput-input': {
+    padding: '0.75rem 1rem',
+    color: 'black',
+  },
+  '& .MuiInputLabel-root': {
+    display: 'none', // Hide labels as they're not in the design
+  },
+  '& .MuiFormHelperText-root': {
+    marginLeft: 0,
+    marginTop: '0.25rem',
+  },
+  '& .MuiOutlinedInput-root': {
+    borderColor: '#d1d5db',
+    '& fieldset': {
+      borderColor: '#d1d5db',
+    },
+  },
+  '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+    borderColor: '#6B7280',
+  },
+  '& .MuiCheckbox-root': {
+    padding: '0.5rem',
+    marginRight: '0.5rem',
+    color: '#000',
+  },
+  '& .MuiCheckbox-colorSecondary.Mui-checked': {
+    color: '#000',
+  },
+  '& .MuiFormControlLabel-root': {
+    marginLeft: '0',
+    marginRight: '0',
+    marginBottom: '0.25rem',
+  },
+  '& .MuiFormGroup-root': {
+    marginTop: '0.5rem',
+  },
+  '& .MuiFormControl-fullWidth': {
+    width: '100%',
+  },
+  // Placeholder styling
+  '& .MuiOutlinedInput-root input::placeholder': {
+    color: '#9ca3af',
+    opacity: 1,
+  },
+  // Select styling
+  '& .MuiSelect-select': {
+    display: 'flex',
+    alignItems: 'center',
+    height: '1.5rem',
+  },
+  // Remove default MUI styling for inputs
+  '& .MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline': {
+    borderColor: '#d1d5db',
+  },
+  // Textarea
+  '& .MuiOutlinedInput-multiline': {
     padding: '0',
-    '& .MuiFormControl-root': {
-      margin: '0.75rem 0',
-    },
-    '& .MuiInputBase-root': {
-      backgroundColor: 'white',
-      borderRadius: '0.375rem',
-    },
-    '& .MuiOutlinedInput-input': {
-      padding: '0.75rem 1rem',
-      color: 'black',
-    },
-    '& .MuiInputLabel-root': {
-      display: 'none', // Hide labels as they're not in the design
-    },
-    '& .MuiFormHelperText-root': {
-      marginLeft: 0,
-      marginTop: '0.25rem',
-    },
-    '& .MuiOutlinedInput-root': {
-      borderColor: '#d1d5db',
-      '& fieldset': {
-        borderColor: '#d1d5db',
-      },
-    },
-    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-      borderColor: '#6B7280',
-    },
-    '& .MuiCheckbox-root': {
-      padding: '0.5rem',
-      marginRight: '0.5rem',
-      color: '#000',
-    },
-    '& .MuiCheckbox-colorSecondary.Mui-checked': {
-      color: '#000',
-    },
-    '& .MuiFormControlLabel-root': {
-      marginLeft: '0',
-      marginRight: '0',
-      marginBottom: '0.25rem',
-    },
-    '& .MuiFormGroup-root': {
-      marginTop: '0.5rem',
-    },
-    '& .MuiFormControl-fullWidth': {
-      width: '100%',
-    },
-    // Placeholder styling
-    '& .MuiOutlinedInput-root input::placeholder': {
-      color: '#9ca3af',
-      opacity: 1,
-    },
-    // Select styling
-    '& .MuiSelect-select': {
-      display: 'flex',
-      alignItems: 'center',
-      height: '1.5rem',
-    },
-    // Remove default MUI styling for inputs
-    '& .MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline': {
-      borderColor: '#d1d5db',
-    },
-    // Textarea
-    '& .MuiOutlinedInput-multiline': {
-      padding: '0',
-    },
-    '& .MuiOutlinedInput-multiline textarea': {
-      padding: '0.75rem 1rem',
-    },
-    // Group title styling
-    '& .group-title': {
-      fontSize: '1rem',
-      fontWeight: 'bold',
-      margin: '1.5rem 0 0.5rem',
-      color: 'black',
-    },
+  },
+  '& .MuiOutlinedInput-multiline textarea': {
+    padding: '0.75rem 1rem',
+  },
+  // Group title styling
+  '& .group-title': {
+    fontSize: '1rem',
+    fontWeight: 'bold',
+    margin: '1.5rem 0 0.5rem',
+    color: 'black',
   },
 });
 
@@ -114,7 +112,6 @@ export function JsonFormsRenderer({
   const [mounted, setMounted] = useState(false);
   const [isTouched, setIsTouched] = useState(false);
   const [validationMode, setValidationMode] = useState<'ValidateAndShow' | 'ValidateAndHide'>('ValidateAndHide');
-  const classes = useStyles();
 
   // Client-side only execution to prevent hydration errors
   useEffect(() => {
@@ -184,7 +181,7 @@ export function JsonFormsRenderer({
       )}
 
       <form onSubmit={handleSubmit} className="space-y-5">
-        <div className={classes.container}>
+        <StyledFormContainer>
           <JsonForms
             schema={schema}
             uischema={uischema}
@@ -194,7 +191,7 @@ export function JsonFormsRenderer({
             onChange={handleChange}
             validationMode={validationMode}
           />
-        </div>
+        </StyledFormContainer>
 
         <div className="mt-10">
           <button

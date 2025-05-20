@@ -1,13 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getLeadById, updateLeadStatus } from '@/lib/api';
 import { LeadStatus } from '@/types';
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const lead = await getLeadById(params.id);
+    const { id } = await params;
+    const lead = await getLeadById(id);
     
     if (!lead) {
       return NextResponse.json(
@@ -27,10 +28,11 @@ export async function GET(
 }
 
 export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const { status } = body;
     
@@ -41,7 +43,7 @@ export async function PATCH(
       );
     }
     
-    const updatedLead = await updateLeadStatus(params.id, status as LeadStatus);
+    const updatedLead = await updateLeadStatus(id, status as LeadStatus);
     
     return NextResponse.json(updatedLead);
   } catch (error) {
