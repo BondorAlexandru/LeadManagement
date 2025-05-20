@@ -2,18 +2,21 @@
 
 import { useState } from 'react';
 import { Lead, LeadStatus } from '@/types';
-import { Button } from '@/components/ui/button';
 import { updateLeadStatus } from '@/lib/api';
 
 interface LeadTableProps {
   leads: Lead[];
-  onLeadUpdate: (updatedLead: Lead) => void;
+  onLeadUpdate?: (updatedLead: Lead) => void;
 }
 
 export function LeadTable({ leads, onLeadUpdate }: LeadTableProps) {
+  const [currentPage, setCurrentPage] = useState(1);
   const [loadingLeadId, setLoadingLeadId] = useState<string | null>(null);
+  const leadsPerPage = 8;
   
   const handleUpdateStatus = async (leadId: string) => {
+    if (!onLeadUpdate) return;
+    
     setLoadingLeadId(leadId);
     try {
       const updatedLead = await updateLeadStatus(leadId, LeadStatus.REACHED_OUT);
@@ -25,86 +28,114 @@ export function LeadTable({ leads, onLeadUpdate }: LeadTableProps) {
     }
   };
   
+  // Sort leads by submission date (newest first)
   const sortedLeads = [...leads].sort((a, b) => {
-    // Show pending leads first
-    if (a.status === LeadStatus.PENDING && b.status !== LeadStatus.PENDING) return -1;
-    if (a.status !== LeadStatus.PENDING && b.status === LeadStatus.PENDING) return 1;
-    
-    // Then sort by date (newest first)
     return new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime();
   });
+  
+  // Paginate leads
+  const indexOfLastLead = currentPage * leadsPerPage;
+  const indexOfFirstLead = indexOfLastLead - leadsPerPage;
+  const currentLeads = sortedLeads.slice(indexOfFirstLead, indexOfLastLead);
+  const totalPages = Math.max(1, Math.ceil(leads.length / leadsPerPage));
 
   return (
-    <div className="overflow-x-auto bg-white rounded-lg shadow">
+    <div className="bg-white rounded-md border border-gray-200 overflow-hidden">
       <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Name
+        <thead>
+          <tr className="border-b">
+            <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 whitespace-nowrap">
+              Name <span className="inline-block ml-1">↓</span>
             </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Submitted
+            <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 whitespace-nowrap">
+              Submitted <span className="inline-block ml-1">↓</span>
             </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Status
+            <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 whitespace-nowrap">
+              Status <span className="inline-block ml-1">↓</span>
             </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Country
+            <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 whitespace-nowrap">
+              Country <span className="inline-block ml-1">↓</span>
             </th>
-            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-6 py-4 text-right text-sm font-medium text-gray-500 whitespace-nowrap">
               Actions
             </th>
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {sortedLeads.length === 0 ? (
-            <tr>
-              <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
-                No leads found
+        <tbody className="divide-y divide-gray-200">
+          {currentLeads.map((lead) => (
+            <tr key={lead.id} className="hover:bg-gray-50">
+              <td className="px-6 py-4 whitespace-nowrap">
+                <span className="text-sm font-medium text-black">
+                  {lead.firstName} {lead.lastName}
+                </span>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <span className="text-sm text-gray-500">
+                  {lead.submittedAt}
+                </span>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <span className="text-sm text-black">
+                  {lead.status}
+                </span>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <span className="text-sm text-black">
+                  {lead.country || 'Unknown'}
+                </span>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-right">
+                {lead.status === LeadStatus.PENDING && (
+                  <button
+                    onClick={() => handleUpdateStatus(lead.id)}
+                    disabled={loadingLeadId === lead.id}
+                    className="px-2 py-1 text-xs font-medium rounded bg-black text-white hover:bg-gray-800"
+                  >
+                    {loadingLeadId === lead.id ? 'Updating...' : 'Mark as Reached Out'}
+                  </button>
+                )}
               </td>
             </tr>
-          ) : (
-            sortedLeads.map((lead) => (
-              <tr key={lead.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">
-                    {lead.firstName} {lead.lastName}
-                  </div>
-                  <div className="text-sm text-gray-500">{lead.email}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {lead.submittedAt}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    lead.status === LeadStatus.PENDING
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-green-100 text-green-800'
-                  }`}>
-                    {lead.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {lead.country || 'Unknown'}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  {lead.status === LeadStatus.PENDING && (
-                    <Button
-                      size="sm"
-                      variant="primary"
-                      onClick={() => handleUpdateStatus(lead.id)}
-                      loading={loadingLeadId === lead.id}
-                      disabled={loadingLeadId === lead.id}
-                    >
-                      Mark as Reached Out
-                    </Button>
-                  )}
-                </td>
-              </tr>
-            ))
-          )}
+          ))}
         </tbody>
       </table>
+      
+      {/* Pagination - always show pagination */}
+      <div className="px-6 py-4 flex justify-end items-center">
+        <button 
+          onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+          disabled={currentPage === 1}
+          className="p-1 rounded-md text-gray-500 hover:text-gray-700 disabled:opacity-50"
+        >
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+          </svg>
+        </button>
+        
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+          <button
+            key={page}
+            onClick={() => setCurrentPage(page)}
+            className={`mx-1 px-3 py-1 rounded-md ${
+              currentPage === page 
+                ? 'bg-gray-200 text-gray-700 font-medium' 
+                : 'text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            {page}
+          </button>
+        ))}
+        
+        <button 
+          onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+          disabled={currentPage === totalPages}
+          className="p-1 rounded-md text-gray-500 hover:text-gray-700 disabled:opacity-50"
+        >
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+          </svg>
+        </button>
+      </div>
     </div>
   );
 } 

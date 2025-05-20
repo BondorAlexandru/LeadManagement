@@ -4,14 +4,13 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
 }
 
 export function AdminLayout({ children }: AdminLayoutProps) {
-  const { user, loading, logout } = useAuth();
+  const { user, loading } = useAuth();
   const router = useRouter();
   
   useEffect(() => {
@@ -19,11 +18,6 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       router.push('/login');
     }
   }, [user, loading, router]);
-  
-  const handleLogout = async () => {
-    await logout();
-    router.push('/login');
-  };
   
   if (loading) {
     return (
@@ -38,30 +32,40 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   }
   
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      <header className="bg-[#D9DB84] p-4">
-        <div className="container mx-auto flex justify-between items-center">
-          <Link href="/admin" className="text-2xl font-bold text-black">
-            ALMA
-          </Link>
-          
-          <div className="flex items-center gap-4">
-            <div className="text-sm text-gray-700">
-              Logged in as: <span className="font-medium">{user.email}</span>
+    <div className="min-h-screen flex bg-white">
+      {/* Sidebar */}
+      <div className="w-64 flex-shrink-0 border-r bg-[#f9f9e1]">
+        <div className="p-6">
+          <h1 className="text-3xl font-bold text-black">alma</h1>
+        </div>
+        
+        <nav className="mt-6">
+          <div className="px-6 py-3">
+            <Link href="/admin" className="text-lg font-medium text-black hover:text-gray-700">
+              Leads
+            </Link>
+          </div>
+          <div className="px-6 py-3">
+            <Link href="/admin/settings" className="text-lg font-medium text-black hover:text-gray-700">
+              Settings
+            </Link>
+          </div>
+        </nav>
+        
+        <div className="absolute bottom-8 px-6">
+          <div className="flex items-center">
+            <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-700 font-semibold mr-3">
+              A
             </div>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleLogout}
-            >
-              Log Out
-            </Button>
+            <div className="text-black font-medium">
+              Admin
+            </div>
           </div>
         </div>
-      </header>
+      </div>
       
-      <main className="flex-1 container mx-auto py-8 px-4 md:px-6">
+      {/* Main content */}
+      <main className="flex-1 overflow-auto">
         {children}
       </main>
     </div>
