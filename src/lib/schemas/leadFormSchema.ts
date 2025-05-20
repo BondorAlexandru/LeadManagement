@@ -60,51 +60,63 @@ export const leadFormUISchema = {
   type: 'VerticalLayout',
   elements: [
     {
-      type: 'Group',
-      label: 'Personal Information',
-      elements: [
-        {
-          type: 'Control',
-          scope: '#/properties/firstName',
-        },
-        {
-          type: 'Control',
-          scope: '#/properties/lastName',
-        },
-        {
-          type: 'Control',
-          scope: '#/properties/email',
-        },
-        {
-          type: 'Control',
-          scope: '#/properties/country',
-          options: {
-            format: 'select',
-            placeholder: 'Select your country',
-          },
-        },
-        {
-          type: 'Control',
-          scope: '#/properties/linkedInProfile',
-        },
-      ],
+      type: 'Control',
+      scope: '#/properties/firstName',
+      options: {
+        placeholder: 'First Name',
+        hideRequiredAsterisk: true,
+      }
+    },
+    {
+      type: 'Control',
+      scope: '#/properties/lastName',
+      options: {
+        placeholder: 'Last Name',
+        hideRequiredAsterisk: true,
+      }
+    },
+    {
+      type: 'Control',
+      scope: '#/properties/email',
+      options: {
+        placeholder: 'Email',
+        hideRequiredAsterisk: true,
+      }
+    },
+    {
+      type: 'Control',
+      scope: '#/properties/country',
+      options: {
+        format: 'select',
+        placeholder: 'Country of Citizenship',
+        hideRequiredAsterisk: true,
+      }
+    },
+    {
+      type: 'Control',
+      scope: '#/properties/linkedInProfile',
+      options: {
+        placeholder: 'LinkedIn / Personal Website URL',
+        hideRequiredAsterisk: true,
+      }
     },
     {
       type: 'Group',
-      label: 'Visa Information',
+      label: 'Visa categories of interest?',
       elements: [
         {
           type: 'Control',
           scope: '#/properties/visasOfInterest',
           options: {
             format: 'checkbox',
-          },
-        },
-      ],
+            hideRequiredAsterisk: true,
+          }
+        }
+      ]
     },
     {
       type: 'Group',
-      label: 'Additional Information',
+      label: 'How can we help you?',
       elements: [
         {
           type: 'Control',
@@ -112,12 +124,13 @@ export const leadFormUISchema = {
           options: {
             multi: true,
             rows: 5,
+            hideRequiredAsterisk: true,
             placeholder: 'What is your current status and when does it expire? What is your past immigration history? Are you looking for long-term permanent residency or short-term employment visa or both? Are there any timeline considerations?'
-          },
-        },
-      ],
-    },
-  ],
+          }
+        }
+      ]
+    }
+  ]
 };
 
 // Country display names for the dropdown options

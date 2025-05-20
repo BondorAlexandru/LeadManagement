@@ -10,10 +10,10 @@ import { makeStyles } from '@material-ui/core/styles';
 import { JsonSchema, UISchemaElement } from '@jsonforms/core';
 import { CircularProgress } from '@mui/material';
 
-// Custom styles for the renderer
+// Custom styles to match the design in the image
 const useStyles = makeStyles({
   container: {
-    padding: '1rem',
+    padding: '0',
     '& .MuiFormControl-root': {
       margin: '0.75rem 0',
     },
@@ -21,30 +21,38 @@ const useStyles = makeStyles({
       backgroundColor: 'white',
       borderRadius: '0.375rem',
     },
-    '& .MuiFormHelperText-root': {
-      marginLeft: 0,
+    '& .MuiOutlinedInput-input': {
+      padding: '0.75rem 1rem',
+      color: 'black',
     },
     '& .MuiInputLabel-root': {
-      fontWeight: 500,
-      color: 'black',
+      display: 'none', // Hide labels as they're not in the design
+    },
+    '& .MuiFormHelperText-root': {
+      marginLeft: 0,
+      marginTop: '0.25rem',
     },
     '& .MuiOutlinedInput-root': {
       borderColor: '#d1d5db',
+      '& fieldset': {
+        borderColor: '#d1d5db',
+      },
     },
     '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
       borderColor: '#6B7280',
     },
     '& .MuiCheckbox-root': {
+      padding: '0.5rem',
+      marginRight: '0.5rem',
       color: '#000',
     },
     '& .MuiCheckbox-colorSecondary.Mui-checked': {
       color: '#000',
     },
-    '& .MuiButtonBase-root': {
-      textTransform: 'none',
-    },
-    '& .MuiFormLabel-asterisk': {
-      color: '#d32f2f',
+    '& .MuiFormControlLabel-root': {
+      marginLeft: '0',
+      marginRight: '0',
+      marginBottom: '0.25rem',
     },
     '& .MuiFormGroup-root': {
       marginTop: '0.5rem',
@@ -52,21 +60,34 @@ const useStyles = makeStyles({
     '& .MuiFormControl-fullWidth': {
       width: '100%',
     },
-  },
-  button: {
-    backgroundColor: '#000',
-    color: 'white',
-    padding: '0.75rem 1rem',
-    borderRadius: '0.375rem',
-    border: 'none',
-    fontWeight: 500,
-    cursor: 'pointer',
-    '&:hover': {
-      backgroundColor: '#1f2937',
+    // Placeholder styling
+    '& .MuiOutlinedInput-root input::placeholder': {
+      color: '#9ca3af',
+      opacity: 1,
     },
-    '&:disabled': {
-      backgroundColor: '#9ca3af',
-      cursor: 'not-allowed',
+    // Select styling
+    '& .MuiSelect-select': {
+      display: 'flex',
+      alignItems: 'center',
+      height: '1.5rem',
+    },
+    // Remove default MUI styling for inputs
+    '& .MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline': {
+      borderColor: '#d1d5db',
+    },
+    // Textarea
+    '& .MuiOutlinedInput-multiline': {
+      padding: '0',
+    },
+    '& .MuiOutlinedInput-multiline textarea': {
+      padding: '0.75rem 1rem',
+    },
+    // Group title styling
+    '& .group-title': {
+      fontSize: '1rem',
+      fontWeight: 'bold',
+      margin: '1.5rem 0 0.5rem',
+      color: 'black',
     },
   },
 });
@@ -91,6 +112,8 @@ export function JsonFormsRenderer({
   const [data, setData] = useState<Record<string, unknown>>(initialData);
   const [errors, setErrors] = useState<string[]>([]);
   const [mounted, setMounted] = useState(false);
+  const [isTouched, setIsTouched] = useState(false);
+  const [validationMode, setValidationMode] = useState<'ValidateAndShow' | 'ValidateAndHide'>('ValidateAndHide');
   const classes = useStyles();
 
   // Client-side only execution to prevent hydration errors
@@ -98,8 +121,22 @@ export function JsonFormsRenderer({
     setMounted(true);
   }, []);
 
+  // Handle change in form data
+  const handleChange = ({ data: newData }: { data: Record<string, unknown> }) => {
+    setData(newData);
+    
+    // If form has been touched before, show validation as user types
+    if (isTouched) {
+      setValidationMode('ValidateAndShow');
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Set the form as touched on submit
+    setIsTouched(true);
+    setValidationMode('ValidateAndShow');
 
     // Get required fields from schema
     const requiredFields = schema.required || [];
@@ -131,9 +168,12 @@ export function JsonFormsRenderer({
     return <div className="text-center py-4">Initializing form...</div>;
   }
 
+  // Only show validation errors if the form has been touched
+  const displayErrors = validationMode === 'ValidateAndShow' && errors.length > 0;
+
   return (
     <div className="max-w-md mx-auto">
-      {errors.length > 0 && (
+      {displayErrors && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
           <ul className="list-disc pl-4">
             {errors.map((error, index) => (
@@ -151,7 +191,8 @@ export function JsonFormsRenderer({
             data={data}
             renderers={materialRenderers}
             cells={materialCells}
-            onChange={({ data }) => setData(data as Record<string, unknown>)}
+            onChange={handleChange}
+            validationMode={validationMode}
           />
         </div>
 
