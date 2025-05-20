@@ -1,22 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { ReactNode } from 'react';
 import { ThemeProvider as MUIThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { theme } from '@/lib/theme';
+import { NoSsr } from '@mui/material';
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [mounted, setMounted] = useState(false);
-
-  // Only run once client-side to avoid hydration issues
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
+export function ThemeProvider({ children }: { children: ReactNode }) {
+  // This ensures that the themes don't mismatch between server and client
+  // by skipping server-side rendering of the theme entirely
   return (
-    <MUIThemeProvider theme={theme}>
-      <CssBaseline />
-      {!mounted ? <div style={{ visibility: 'hidden' }}>{children}</div> : children}
-    </MUIThemeProvider>
+    <NoSsr>
+      <MUIThemeProvider theme={theme}>
+        <CssBaseline />
+        {children}
+      </MUIThemeProvider>
+    </NoSsr>
   );
 } 

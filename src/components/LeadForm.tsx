@@ -231,7 +231,7 @@ export function LeadForm({ onSuccess }: LeadFormProps) {
                   onBlur={() => handleBlur("country")}
                   className={`w-full px-4 py-3 border ${errors.country && touchedFields.country ? 'border-red-500' : 'border-gray-300'} rounded-md appearance-none focus:outline-none focus:ring-1 focus:ring-gray-400 text-gray-500`}
                 >
-                  <option value="" disabled selected>
+                  <option value="" disabled>
                     Country of Citizenship
                   </option>
                   <option value="united_states">United States</option>
