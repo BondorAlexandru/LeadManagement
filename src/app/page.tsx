@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { LeadForm } from '@/components/LeadForm';
 import { ThankYou } from '@/components/ThankYou';
+import { JsonFormsLeadForm } from '@/components/JsonFormsLeadForm';
 
 export default function Home() {
   const [submitted, setSubmitted] = useState(false);
@@ -37,7 +37,7 @@ export default function Home() {
       <div className="w-full h-full">
         <div className="bg-white shadow-md overflow-hidden">
           {!submitted ? (
-            <LeadForm onSuccess={() => setSubmitted(true)} />
+            <JsonFormsLeadForm onSuccess={() => setSubmitted(true)} />
           ) : (
             <ThankYou onReset={handleReset} />
           )}

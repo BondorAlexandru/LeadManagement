@@ -1,39 +1,34 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Lead } from '@/types';
-import { getLeads } from '@/lib/api';
 import { AdminLayout } from '@/components/AdminLayout';
 import { LeadTable } from '@/components/LeadTable';
+import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks';
+import { fetchLeads, setSearchTerm, setStatusFilter } from '@/lib/redux/slices/leadsSlice';
 
 export default function AdminPage() {
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const dispatch = useAppDispatch();
+  const { 
+    filteredLeads, 
+    status, 
+    currentSearchTerm,
+    currentStatusFilter
+  } = useAppSelector(state => state.leads);
+  const [mounted, setMounted] = useState(false);
   
+  // Set mounted state to prevent hydration issues
   useEffect(() => {
-    const fetchLeads = async () => {
-      try {
-        const leadsData = await getLeads();
-        setLeads(leadsData);
-      } catch (error) {
-        console.error('Error fetching leads:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchLeads();
+    setMounted(true);
   }, []);
   
-  const handleLeadUpdate = (updatedLead: Lead) => {
-    setLeads(prevLeads => 
-      prevLeads.map(lead => 
-        lead.id === updatedLead.id ? updatedLead : lead
-      )
-    );
-  };
+  // Fetch leads on first mount
+  useEffect(() => {
+    if (mounted && status === 'idle') {
+      dispatch(fetchLeads());
+    }
+  }, [dispatch, status, mounted]);
+  
+  const isLoading = !mounted || status === 'loading';
   
   const statusOptions = [
     { value: 'all', label: 'All Statuses' },
@@ -41,20 +36,19 @@ export default function AdminPage() {
     { value: 'Reached Out', label: 'Reached Out' },
   ];
   
-  const filteredLeads = leads.filter(lead => {
-    const matchesSearch = 
-      searchTerm === '' || 
-      lead.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lead.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (lead.country && lead.country.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    const matchesStatus = 
-      statusFilter === 'all' || 
-      lead.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  });
+  // Early return for server rendering to prevent hydration mismatches
+  if (!mounted) {
+    return (
+      <AdminLayout>
+        <div className="p-6">
+          <h1 className="text-2xl font-bold mb-6 text-black">Leads</h1>
+          <div className="flex justify-center py-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
@@ -71,16 +65,16 @@ export default function AdminPage() {
             <input
               type="text"
               placeholder="Search"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              value={currentSearchTerm}
+              onChange={(e) => dispatch(setSearchTerm(e.target.value))}
               className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-400 w-64 placeholder-gray-500 text-black"
             />
           </div>
           
           <div className="relative">
             <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              value={currentStatusFilter}
+              onChange={(e) => dispatch(setStatusFilter(e.target.value))}
               className="pl-4 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-400 appearance-none text-black"
             >
               {statusOptions.map(option => (
@@ -102,7 +96,6 @@ export default function AdminPage() {
         ) : (
           <LeadTable 
             leads={filteredLeads}
-            onLeadUpdate={handleLeadUpdate}
           />
         )}
       </div>

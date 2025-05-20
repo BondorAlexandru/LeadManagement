@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 
 interface ThankYouProps {
@@ -7,6 +8,22 @@ interface ThankYouProps {
 }
 
 export function ThankYou({ onReset }: ThankYouProps) {
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  
+  // Simple version while waiting for hydration
+  if (!mounted) {
+    return (
+      <div className="bg-white p-8 rounded-md flex flex-col items-center text-center">
+        <h2 className="text-black text-2xl font-bold mb-2">Thank You</h2>
+        <p className="text-gray-600 mb-6">Your submission was received.</p>
+      </div>
+    );
+  }
+  
   return (
     <div className="bg-white p-8 rounded-md flex flex-col items-center text-center">
       <div className="bg-blue-100 p-4 rounded-full mb-4">

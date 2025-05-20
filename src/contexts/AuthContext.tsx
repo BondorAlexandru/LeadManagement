@@ -17,17 +17,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Check for existing session on load
+  // Check for existing session on load - only runs client-side after first render
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
+    const checkAuthState = () => {
       try {
-        setUser(JSON.parse(storedUser));
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
+        }
       } catch (error) {
         console.error('Failed to parse user from localStorage', error);
+      } finally {
+        setLoading(false);
       }
-    }
-    setLoading(false);
+    };
+    
+    checkAuthState();
   }, []);
 
   const login = async (email: string, password: string) => {

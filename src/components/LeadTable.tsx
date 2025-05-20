@@ -1,32 +1,60 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Lead, LeadStatus } from '@/types';
-import { updateLeadStatus } from '@/lib/api';
+import { useAppDispatch } from '@/lib/redux/hooks';
+import { updateLead } from '@/lib/redux/slices/leadsSlice';
 
 interface LeadTableProps {
   leads: Lead[];
-  onLeadUpdate?: (updatedLead: Lead) => void;
 }
 
-export function LeadTable({ leads, onLeadUpdate }: LeadTableProps) {
+export function LeadTable({ leads }: LeadTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [loadingLeadId, setLoadingLeadId] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+  const dispatch = useAppDispatch();
   const leadsPerPage = 8;
   
+  // Set mounted state to prevent hydration issues
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  
   const handleUpdateStatus = async (leadId: string) => {
-    if (!onLeadUpdate) return;
-    
     setLoadingLeadId(leadId);
     try {
-      const updatedLead = await updateLeadStatus(leadId, LeadStatus.REACHED_OUT);
-      onLeadUpdate(updatedLead);
+      await dispatch(updateLead({ leadId, status: LeadStatus.REACHED_OUT })).unwrap();
     } catch (error) {
       console.error('Error updating lead status:', error);
     } finally {
       setLoadingLeadId(null);
     }
   };
+  
+  // If not mounted yet, show a simpler UI to prevent hydration issues
+  if (!mounted) {
+    return (
+      <div className="bg-white rounded-md border border-gray-200 overflow-hidden">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead>
+            <tr className="border-b">
+              <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 whitespace-nowrap">Name</th>
+              <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 whitespace-nowrap">Submitted</th>
+              <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 whitespace-nowrap">Status</th>
+              <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 whitespace-nowrap">Country</th>
+              <th className="px-6 py-4 text-right text-sm font-medium text-gray-500 whitespace-nowrap">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">Loading leads...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    );
+  }
   
   // Sort leads by submission date (newest first)
   const sortedLeads = [...leads].sort((a, b) => {
@@ -62,41 +90,47 @@ export function LeadTable({ leads, onLeadUpdate }: LeadTableProps) {
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200">
-          {currentLeads.map((lead) => (
-            <tr key={lead.id} className="hover:bg-gray-50">
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className="text-sm font-medium text-black">
-                  {lead.firstName} {lead.lastName}
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className="text-sm text-gray-500">
-                  {lead.submittedAt}
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className="text-sm text-black">
-                  {lead.status}
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className="text-sm text-black">
-                  {lead.country || 'Unknown'}
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-right">
-                {lead.status === LeadStatus.PENDING && (
-                  <button
-                    onClick={() => handleUpdateStatus(lead.id)}
-                    disabled={loadingLeadId === lead.id}
-                    className="px-2 py-1 text-xs font-medium rounded bg-black text-white hover:bg-gray-800"
-                  >
-                    {loadingLeadId === lead.id ? 'Updating...' : 'Mark as Reached Out'}
-                  </button>
-                )}
-              </td>
+          {currentLeads.length === 0 ? (
+            <tr>
+              <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">No leads found</td>
             </tr>
-          ))}
+          ) : (
+            currentLeads.map((lead) => (
+              <tr key={lead.id} className="hover:bg-gray-50">
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className="text-sm font-medium text-black">
+                    {lead.firstName} {lead.lastName}
+                  </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className="text-sm text-gray-500">
+                    {lead.submittedAt}
+                  </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className="text-sm text-black">
+                    {lead.status}
+                  </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className="text-sm text-black">
+                    {lead.country || 'Unknown'}
+                  </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-right">
+                  {lead.status === LeadStatus.PENDING && (
+                    <button
+                      onClick={() => handleUpdateStatus(lead.id)}
+                      disabled={loadingLeadId === lead.id}
+                      className="px-2 py-1 text-xs font-medium rounded bg-black text-white hover:bg-gray-800"
+                    >
+                      {loadingLeadId === lead.id ? 'Updating...' : 'Mark as Reached Out'}
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))
+          )}
         </tbody>
       </table>
       

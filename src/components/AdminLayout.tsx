@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
@@ -12,13 +12,26 @@ interface AdminLayoutProps {
 export function AdminLayout({ children }: AdminLayoutProps) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
   
   useEffect(() => {
+    setMounted(true);
+    
     if (!loading && !user) {
       router.push('/login');
     }
   }, [user, loading, router]);
   
+  // Server-side and initial client render
+  if (!mounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+  
+  // Client-side only after mounting
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
